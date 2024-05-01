@@ -4,7 +4,7 @@ from read_write import *
 
 
 if __name__ == "__main__":
-    config = read_json("setting.json")
+    config = read_json("config.json")
     text = read_file(config["path_text_task2"])
 
     frequency_analysis(config["path_frequencies"], text)
