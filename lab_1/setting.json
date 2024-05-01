@@ -1,0 +1,14 @@
+{
+  "path_alphabet": "D:/study/Programming/2kurs/inf_safety_basic/isb/lab_1/texts/task2/data.json",
+  "path_decrypted_text": "D:/study/Programming/2kurs/inf_safety_basic/isb/lab_1/texts/task1/decrypted_text.txt",
+  "path_decryption_key": "D:/study/Programming/2kurs/inf_safety_basic/isb/lab_1/texts/task2/decryption_key.json",
+  "path_decryption_text": "D:/study/Programming/2kurs/inf_safety_basic/isb/lab_1/texts/task2/decryption_text.txt",
+  "path_encrypted_text": "D:/study/Programming/2kurs/inf_safety_basic/isb/lab_1/texts/task1/encrypted_text.txt",
+  "path_frequencies": "D:/study/Programming/2kurs/inf_safety_basic/isb/lab_1/texts/task2/frequencies.json",
+  "path_frequency": "D:/study/Programming/2kurs/inf_safety_basic/isb/lab_1/texts/task2/frequencies.json",
+  "path_key_task1": "D:/study/Programming/2kurs/inf_safety_basic/isb/lab_1/texts/task1/vigenere_key.json",
+  "path_key_task2": "D:/study/Programming/2kurs/inf_safety_basic/isb/lab_1/texts/task2/decryption_key.json",
+  "path_text_task1": "D:/study/Programming/2kurs/inf_safety_basic/isb/lab_1/texts/task1/text1.txt",
+  "path_text_task2": "D:/study/Programming/2kurs/inf_safety_basic/isb/lab_1/texts/task2/cod2.txt",
+  "path_folder_text": "D:/study/Programming/2kurs/inf_safety_basic/isb/lab_1/texts"
+}
