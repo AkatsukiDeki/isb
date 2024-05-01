@@ -1,7 +1,4 @@
-import os
-import json
-from encrypt_text import read_json, write_json, read_files, write_files, vigenere_cipher, generate_vigenere_key, \
-    save_vigenere_key, encrypt_file, decrypt_file
+from encrypt_text import read_json, save_vigenere_key, encrypt_file, decrypt_file
 
 
 def main():
