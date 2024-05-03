@@ -22,6 +22,8 @@ def read_json(file_path):
         print(f"Error: File {file_path} not found.")
     except json.JSONDecodeError:
         print(f"Error: Invalid JSON format in {file_path}.")
+    except Exception as e:
+        print(f"An error occurred while reading the file '{path}': {str(e)}")
 
 
 def write_json(data, file_path):
@@ -37,6 +39,8 @@ def write_json(data, file_path):
             json.dump(data, file)
     except IOError:
         print(f"Error: Unable to write to file {file_path}.")
+    except Exception as e:
+        print(f"An error occurred while reading the file '{path}': {str(e)}")
 
 
 def read_files(file_path):
@@ -56,6 +60,8 @@ def read_files(file_path):
         print(f"Error: File {file_path} not found.")
     except IOError:
         print(f"Error: Unable to read file {file_path}.")
+    except Exception as e:
+        print(f"An error occurred while reading the file '{path}': {str(e)}")
 
 
 def write_files(file_path, data):
@@ -71,6 +77,8 @@ def write_files(file_path, data):
             file.write(data)
     except IOError:
         print(f"Error: Unable to write to file {file_path}.")
+    except Exception as e:
+        print(f"An error occurred while reading the file '{path}': {str(e)}")
 
 
 def vigenere_cipher(message, key, action):
