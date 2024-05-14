@@ -10,8 +10,14 @@ def write_file(path: str, info: str) -> None:
     try:
         with open(path, "a+", encoding='UTF-8') as file:
             file.write(info)
-    except Exception as e:
+    except FileNotFoundError as e:
         print(f"An error occurred while writing the file: {str(e)}")
+    except PermissionError as e:
+        print(f"An error occurred while writing the file: {str(e)}")
+    except OSError as e:
+        print(f"An error occurred while writing the file: {str(e)}")
+    except Exception as e:
+        print(f"An unexpected error occurred while writing the file: {str(e)}")
 
 
 def read_json(path: str) -> dict:
@@ -21,10 +27,15 @@ def read_json(path: str) -> dict:
     Returns:
       Dictionary with json file structure
     """
-    try:
-        with open(path, 'r', encoding='UTF-8') as file:
+    with open(path, 'r', encoding='UTF-8') as file:
             return json.load(file)
-    except FileNotFoundError:
-        print("The file was not found")
-    except Exception as e:
+    except FileNotFoundError as e:
+        print(f"The file was not found: {str(e)}")
+    except PermissionError as e:
         print(f"An error occurred while reading the JSON file: {str(e)}")
+    except json.JSONDecodeError as e:
+        print(f"An error occurred while decoding the JSON file: {str(e)}")
+    except OSError as e:
+        print(f"An error occurred while reading the JSON file: {str(e)}")
+    except Exception as e:
+        print(f"An unexpected error occurred while reading the JSON file: {str(e)}")
