@@ -107,7 +107,12 @@ def longest_sequence_of_ones_test(sequence: str, txt_file_path: str, key: str) -
         xi_square = 0
         for i in range(4):
             xi_square += pow(v[i + 1] - 16 * PI[i], 2) / (16 * PI[i])
-        p_v = mpmath.gammainc(3 / 2, xi_square / 2)
+
+
+        print(f"Значение хи-квадрат обычное: [{xi_square}]")
+        p_v = mpmath.gammainc(3 / 2, xi_square*10 / 2)
+        print(p_v)
+        print(f"Значение хи-квадрат: [{xi_square}]")
         write_file(txt_file_path, f'{key} : {p_v}\n')
     except Exception as e:
         print("Test for the longest sequence of ones in the block, ERROR:", e)

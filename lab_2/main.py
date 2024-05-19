@@ -12,3 +12,4 @@ if __name__ == "__main__":
     consecutive_bits_test(sequences_java, config["To"], "Java")
     longest_sequence_of_ones_test(sequences_cpp, config["To"], "C++")
     longest_sequence_of_ones_test(sequences_java, config["To"], "Java")
+ #   longest_sequence_of_ones_test(sequences_java, config["To"], "Java")
