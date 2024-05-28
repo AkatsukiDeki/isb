@@ -1,64 +1,87 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
-from PyQt5.Qt import QFile, QIODevice
-from sym_asym.sym import Symmetric
-from sym_asym.asym import Asymmetric
-from sym_asym.work_no_walk_yes_files import *
+import argparse
+from unittest import TestCase
 
-class SymmetricEncryptionGUI(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Symmetric Encryption")
-        self.setGeometry(100, 100, 400, 400)
+from asym import *
+from sym import *
+from work_to_file import *
 
-        self.symmetric = Symmetric()
-        self.asymmetric = Asymmetric()
 
-        self.file_paths = {
-            "initial_file": "text/text.txt",
-            "encrypted_file": "text/encrypt_text.txt",
-            "decrypted_file": "text/decrypt_text.txt",
-            "symmetric_key": "key/sym.txt",
-            "encrypted_symmetric_key": "key/encrypt_sym_key.txt",
-            "public_key": "key/asym_public_key.pem",
-            "private_key": "key/asym_private_key.pem",
-            "decrypted_symmetric_key": "key/decrypt_sym_key.txt"
-        }
+def menu():
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-gen', '--generation', action='store_true', help='Starts the key generation mode')
+    group.add_argument('-enc', '--encryption', action='store_true', help='Starts the encryption mode')
+    group.add_argument('-dec', '--decryption', action='store_true', help='Starts the decryption mode')
+    group.add_argument('-enc_sym', '--encryption_symmetric', action='store_true',
+                       help='Starts symmetric key encryption mode')
+    group.add_argument('-dec_sym', '--decryption_symmetric', action='store_true',
+                       help='Starts symmetric key decryption mode')
+    parser.add_argument("setting", type=str, help="Path to the json file with the settings")
 
-        self.init_ui()
+    args = parser.parse_args()
 
-    def init_ui(self):
-        # Add your PyQt5 UI components and event handlers here
-        pass
+    setting = read_json(args.setting)
 
-    def encrypt_file(self):
-        # Generate symmetric key and nonce
-        self.symmetric.generate_key_and_nonce()
-        self.symmetric.serialize_key(self.file_paths["symmetric_key"])
-        self.symmetric.serialize_nonce(self.file_paths["symmetric_key"])
+    sym = Symmetric()
+    asym = Asymmetric()
 
-        # Encrypt the file using the symmetric key
-        self.symmetric.encrypt(self.file_paths["initial_file"], self.file_paths["encrypted_file"])
+    if args.generation:
+        sym.key_generation(256)
+        print("Сгенерирован симметричный ключ длиной 256 бит")
+        sym.nonce_generation(128)
+        print("Сгенерировано одноразовое случайное число длиной 128 бит")
+        sym.key_serialization(setting["symmetric_key"])
+        print(f"Симметричный ключ сериализован в {setting['symmetric_key']}")
+        sym.nonce_serialization(setting["symmetric_nonce"])
+        print(f"Одноразовое случайное число сериализовано в {setting['symmetric_nonce']}")
+        asym.generate_keys()
+        print("Созданы асимметричные ключи")
+        asym.serialization_public(setting["asym_public_key"])
+        print(f"Публичный ключ сериализован в {setting['asym_public_key']}")
+        asym.serialization_private(setting["asym_private_key"])
+        print(f"Приватный ключ сериализован в {setting['asym_private_key']}")
+    elif args.encryption:
+        sym.key_deserialization(setting["symmetric_key"])
+        print(f"Симметричный ключ десериализован из {setting['symmetric_key']}")
+        sym.nonce_deserialization(setting["symmetric_nonce"])
+        print(f"Одноразовое случайное число десериализовано из {setting['symmetric_nonce']}")
+        asym.public_key_deserialization(setting["asym_public_key"])
+        print(f"Публичный ключ десериализован из {setting['asym_public_key']}")
+        # Encrypt a file using the public key and the symmetric key + nonce
+    elif args.decryption:
+        sym.key_deserialization(setting["symmetric_key"])
+        print(f"Симметричный ключ десериализован из {setting['symmetric_key']}")
+        sym.nonce_deserialization(setting["symmetric_nonce"])
+        print(f"Одноразовое случайное число десериализовано из {setting['symmetric_nonce']}")
+        asym.private_key_deserialization(setting["asym_private_key"])
+        print(f"Приватный ключ десериализован из {setting['asym_private_key']}")
+        # Decrypt a file using the private key and the symmetric key + nonce
+    elif args.encryption_symmetric:
+        sym.key_deserialization(setting["symmetric_key"])
+        print(f"Симметричный ключ десериализован из {setting['symmetric_key']}")
+        sym.nonce_deserialization(setting["symmetric_nonce"])
+        print(f"Одноразовое случайное число десериализовано из {setting['symmetric_nonce']}")
+        asym.public_key_deserialization(setting["asym_public_key"])
+        print(f"Публичный ключ десериализован из {setting['asym_public_key']}")
+        encrypted_symmetric_key = asym.encrypt(sym.key)
+        print("Симметричный ключ зашифрован публичным ключом")
+        write_bytes_text(setting["encrypted_symmetric_key"], encrypted_symmetric_key)
+        print(f"Зашифрованный симметричный ключ записан в {setting['encrypted_symmetric_key']}")
+    elif args.decryption_symmetric:
+        sym.key_deserialization(setting["symmetric_key"])
+        print(f"Симметричный ключ десериализован из {setting['symmetric_key']}")
+        sym.nonce_deserialization(setting["symmetric_nonce"])
+        print(f"Одноразовое случайное число десериализовано из {setting['symmetric_nonce']}")
+        asym.private_key_deserialization(setting["asym_private_key"])
+        print(f"Приватный ключ десериализован из {setting['asym_private_key']}")
+        encrypted_symmetric_key = read_bytes(setting["encrypted_symmetric_key"])
+        print(f"Зашифрованный симметричный ключ считан из {setting['encrypted_symmetric_key']}")
+        decrypted_symmetric_key = asym.decrypt(encrypted_symmetric_key)
+        print("Симметричный ключ расшифрован приватным ключом")
+        sym.key_serialization(setting["decrypted_symmetric_key"])
+        print(f"Расшифрованный симметричный ключ сериализован в {setting['decrypted_symmetric_key']}")
+        return decrypted_symmetric_key
 
-        # Encrypt the symmetric key using the public key
-        encrypted_symmetric_key = self.asymmetric.encrypt(self.symmetric.key)
-        write_bytes_text(self.file_paths["encrypted_symmetric_key"], encrypted_symmetric_key)
-
-    def decrypt_file(self):
-        # Deserialize the symmetric key and nonce
-        self.symmetric.key_deserialization(self.file_paths["symmetric_key"])
-        self.symmetric.nonce_deserialization(self.file_paths["symmetric_key"])
-
-        # Decrypt the symmetric key using the private key
-        encrypted_symmetric_key = read_bytes(self.file_paths["encrypted_symmetric_key"])
-        decrypted_symmetric_key = self.asymmetric.decrypt(encrypted_symmetric_key)
-        write_file(self.file_paths["decrypted_symmetric_key"], decrypted_symmetric_key.decode())
-
-        # Decrypt the file using the symmetric key
-        self.symmetric.decrypt(self.file_paths["encrypted_file"], self.file_paths["decrypted_file"])
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    gui = SymmetricEncryptionGUI()
-    gui.show()
-    sys.exit(app.exec_())
+    menu()
