@@ -1,15 +1,8 @@
-
-import os
 import sys
-sys.path.append("crypto")
-
+sys.path.append('crypto')
 
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QVBoxLayout, QWidget, QComboBox, QPushButton, QMessageBox
-from crypto.asym import Asymmetric
-from crypto.sym import Symmetric
-from crypto.serializ import *
-from crypto.file import Work
-
+from crypto.file import generate_keys, encrypt_file, decrypt_file
 
 class EncryptionApp(QMainWindow):
     def __init__(self):
@@ -25,20 +18,21 @@ class EncryptionApp(QMainWindow):
             "encrypted_symmetric_key": "keys/encrypted_symmetric_key.txt",
             "decrypted_symmetric_key": "keys/decrypted_symmetric_key.txt"
         }
+
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle('Encryption App')
         self.setGeometry(100, 100, 400, 300)
 
-        # Create widgets
-        self.mode_label = QLabel('Choose mode:')
+        # Создание виджетов выбора действия
+        self.mode_label = QLabel('Choose action:')
         self.mode_combo = QComboBox()
         self.mode_combo.addItems(['Key Generation', 'Encryption', 'Decryption'])
 
-        self.start_button = QPushButton('Start')
+        self.start_button = QPushButton('Start Action')
 
-        # Layout
+        # Создание макета для выбора действия
         layout = QVBoxLayout()
         layout.addWidget(self.mode_label)
         layout.addWidget(self.mode_combo)
@@ -48,55 +42,31 @@ class EncryptionApp(QMainWindow):
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
 
-        # Connections
-        self.start_button.clicked.connect(self.start_operation)
+        # Подключение сигналов к слотам
+        self.start_button.clicked.connect(self.start_selected_action)
 
-    def start_operation(self):
-        mode = self.mode_combo.currentText().lower()
+    def start_selected_action(self):
+        selected_action = self.mode_combo.currentText().lower()
 
-        if mode == 'key generation':
+        if selected_action == 'key generation':
             self.generate_keys()
-        elif mode == 'encryption':
+        elif selected_action == 'encryption':
             self.encrypt_data()
-        elif mode == 'decryption':
+        elif selected_action == 'decryption':
             self.decrypt_data()
 
     def generate_keys(self):
-        symmetric_key = Symmetric.key_generation(32)
-        Serialization.symmetric_key_serialization(self.settings["symmetric_key"], symmetric_key)
-        public_key, private_key = Asymmetric.key_generation()
-        Serialization.public_key_serialization(self.settings["asym_public_key"], public_key)
-        Serialization.private_key_serialization(self.settings["asym_private_key"], private_key)
-        Serialization.nonce_serialization(self.settings["nonce"], os.urandom(16))
+        generate_keys(self.settings["asym_private_key"], self.settings["asym_public_key"], self.settings["symmetric_key"])
         QMessageBox.information(self, 'Key Generation', 'Keys were generated successfully!')
 
     def encrypt_data(self):
-        encrypted_text = Symmetric.encryption(
-            self.settings["initial_file"],
-            self.settings["symmetric_key"],
-            self.settings["nonce"],
-            self.settings["encrypted_file"]
-        )
-        Asymmetric.encrypt(
-            self.settings["asym_public_key"],
-            self.settings["symmetric_key"],
-            self.settings["encrypted_symmetric_key"]
-        )
+        encrypt_file(self.settings["initial_file"], self.settings["asym_private_key"], self.settings["symmetric_key"], self.settings["encrypted_file"])
         QMessageBox.information(self, 'Encryption', 'Data was encrypted successfully!')
 
     def decrypt_data(self):
-        Asymmetric.decrypt(
-            self.settings["asym_private_key"],
-            self.settings["encrypted_symmetric_key"],
-            self.settings["decrypted_symmetric_key"]
-        )
-        decrypted_text = Symmetric.decryption(
-            self.settings["symmetric_key"],
-            self.settings["nonce"],
-            self.settings["encrypted_file"],
-            self.settings["decrypted_file"]
-        )
-        QMessageBox.information(self, 'Decryption', f'Decrypted text: {decrypted_text}')
+        decrypt_file(self.settings["encrypted_file"], self.settings["asym_private_key"], self.settings["symmetric_key"], self.settings["decrypted_file"])
+        QMessageBox.information(self, 'Decryption', 'Decrypted text was saved to file.')
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

@@ -1,101 +1,51 @@
-from cryptography.hazmat.primitives.serialization import (load_pem_public_key, load_pem_private_key)
-from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
 
 
-class Serialization:
-    def __init__(self):
-        pass
+def serialize_private_key(private_key):
+    """
+    Serialize a private key to PEM format.
+    Args:
+        private_key (cryptography.hazmat.backends.openssl.rsa._RSAPrivateKey): The private key to serialize.
+    Returns:
+        bytes: The serialized private key in PEM format.
+    """
+    try:
+        return private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+    except Exception as ex:
+        raise Exception(f"ERROR!!{ex}")
 
-    def symmetric_key_serialization(file_path: str, key: bytes) -> None:
-        """Serialization of the symmetric encryption key
-        Args:
-            file_path: file_path for serialization
-            key: symmetric key
-        """
-        try:
-            with open(file_path, "wb") as key_file:
-                key_file.write(key)
-        except Exception as error:
-            print(error)
 
-    def symmetric_key_deserialization(file_path: str) -> bytes:
-        """Deserialization of the symmetric encryption key
-        Args:
-            file_path: file_path for deserialization
-        Returns:
-            symmetric key
-        """
-        try:
-            with open(file_path, "rb") as key_file:
-                return key_file.read()
-        except Exception as error:
-            print(error)
+def serialize_public_key(public_key):
+    """
+    Serialize a public key to PEM format.
+    Args:
+        public_key: The public key to serialize.
+    Returns:
+        bytes: The serialized public key in PEM format.
+    """
+    try:
+        return public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+    except Exception as ex:
+        raise Exception(f"ERROR!!{ex}")
 
-    def public_key_serialization(public_pem: str, public_key: rsa.RSAPublicKey) -> None:
-        """RSA public key serialization
-        Args:
-            public_pem: file_path for public RSA key serialization
-            public_key: public RSA-key
-        """
-        try:
-            with open(public_pem, "wb") as public_out:
-                public_out.write(
-                    public_key.public_bytes(
-                        encoding=serialization.Encoding.PEM,
-                        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-                    )
-                )
-        except Exception as error:
-            print(error)
 
-    def private_key_serialization(
-            private_pem: str, private_key: rsa.RSAPrivateKey
-    ) -> None:
-        """RSA private key serialization
-        Args:
-            private_pem: file_path for private RSA key serialization
-            private_key: private RSA-key
-        """
-        try:
-            with open(private_pem, "wb") as private_out:
-                private_out.write(
-                    private_key.private_bytes(
-                        encoding=serialization.Encoding.PEM,
-                        format=serialization.PrivateFormat.TraditionalOpenSSL,
-                        encryption_algorithm=serialization.NoEncryption(),
-                    )
-                )
-        except Exception as error:
-            print(error)
-
-    def public_key_deserialization(public_pem: str) -> rsa.RSAPublicKey:
-        """RSA public key deserialization
-        Args:
-            public_pem: file_path for public RSA key deserialization
-        Returns:
-            RSA public Key
-        """
-        try:
-            with open(public_pem, "rb") as pem_in:
-                public_bytes = pem_in.read()
-            return load_pem_public_key(public_bytes)
-        except Exception as error:
-            print(error)
-
-    def private_key_deserialization(private_pem: str) -> rsa.RSAPrivateKey:
-        """RSA private key deserialization
-        Args:
-            private_pem: file_path for private RSA key deserialization
-        Returns:
-            RSA private Key
-        """
-        try:
-            with open(private_pem, "rb") as pem_in:
-                private_bytes = pem_in.read()
-            return load_pem_private_key(
-                private_bytes,
-                password=None,
-            )
-        except Exception as error:
-            print(error)
+def load_private_key(private_key_bytes):
+    """
+    Load a private key from its byte representation.
+    Args:
+        private_key_bytes (bytes): The byte representation of the private key.
+    Returns:
+        bytes: The loaded private key.
+    """
+    try:
+        return serialization.load_pem_private_key(private_key_bytes, password=None, backend=default_backend())
+    except Exception as ex:
+        raise Exception(f"ERROR!!{ex}")

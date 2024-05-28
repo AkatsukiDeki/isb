@@ -1,78 +1,54 @@
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
+
 from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import padding as asymmetric_padding
+from cryptography.hazmat.primitives import hashes, padding
+from cryptography.hazmat.primitives.asymmetric import padding
 
-from crypto.serializ import Serialization
-from crypto.file import Work
+
+def generate_key_pair():
+    """
+    Generates an RSA key pair.
+    Returns:
+        RSAPrivateKey: The generated RSA private key.
+    """
+    try:
+        return rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    except Exception as ex:
+        raise Exception(f"ERROR!!{ex}")
 
 
-class Asymmetric:
-    def __init__(self):
-        pass
+def encrypt_symmetric_key(private_key, symmetric_key):
+    """
+    Encrypts a symmetric key using RSA encryption.
+    Args:
+        private_key (RSAPrivateKey): The RSA private key used for encryption.
+        symmetric_key (bytes): The symmetric key to be encrypted.
+    Returns:
+        bytes: The encrypted symmetric key.
+    """
+    try:
+        encrypted_key = private_key.public_key().encrypt(symmetric_key,
+                                    padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                                                 algorithm=hashes.SHA256(), label=None))
+        return encrypted_key
+    except Exception as ex:
+        raise Exception(f"ERROR!!{ex}")
 
-    def key_generation() -> tuple[rsa.RSAPublicKey, rsa.RSAPrivateKey]:
-        """generate asymmetric key
 
-        Returns:
-            tuple[rsa.RSAPublicKey, rsa.RSAPrivateKey]: public and private keys
-        """
-        key_pair = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-        return key_pair.public_key(), key_pair
-
-    def encryption(
-            path_to_public: str,
-            path_to_symmetric_origin: str,
-            path_to_symmetric_encripted: str,
-    ) -> None:
-        """Symmetric key encription by asymmetric key
-
-        Args:
-            path_to_public (str): path to file with public asymmetric key
-            path_to_symmetric_origin (str): path to file with original symmetric key
-            path_to_symmetric_encripted (str): path to save encripted symmetric key
-        """
-        symmetric_key = Serialization.symmetric_key_deserialization(
-            path_to_symmetric_origin
-        )
-        public_key = Serialization.public_key_deserialization(path_to_public)
-        encripted_key = public_key.encrypt(
-            symmetric_key,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None,
-            ),
-        )
-        Work.read_bytes_from_text(path_to_symmetric_encripted, encripted_key)
-
-    def decryption(
-            path_to_private: str,
-            path_to_symmetric_encripted: str,
-            path_to_symmetric_decripted: str,
-    ) -> bytes:
-        """Symmetric key decription by asymmetric key
-
-        Args:
-            path_to_private (str): path to private key
-            path_to_symmetric_encripted (str): path to file with encrypted symmetric key
-            path_to_symmetric_decripted (str): path to file with decrypted symmetric key
-
-        Returns:
-            bytes: decrypted key
-        """
-        symmetric_encripted = Serialization.symmetric_key_deserialization(
-            path_to_symmetric_encripted
-        )
-        private_key = Serialization.private_key_deserialization(path_to_private)
-        decripted_key = private_key.decrypt(
-            symmetric_encripted,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None,
-            ),
-        )
-        Serialization.symmetric_key_serialization(
-            path_to_symmetric_decripted, decripted_key
-        )
-        return decripted_key
+def decrypt_symmetric_key(private_key, encrypted_symmetric_key):
+    """
+    Decrypts an encrypted symmetric key using RSA decryption.
+    Args:
+        private_key (RSAPrivateKey): The RSA private key used for decryption.
+        encrypted_symmetric_key (bytes): The encrypted symmetric key to be decrypted.
+    Returns:
+        bytes: The decrypted symmetric key.
+    """
+    try:
+        return private_key.decrypt(encrypted_symmetric_key, asymmetric_padding.OAEP(
+            mgf=asymmetric_padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        ))
+    except Exception as ex:
+        raise Exception(f"ERROR!!{ex}")
