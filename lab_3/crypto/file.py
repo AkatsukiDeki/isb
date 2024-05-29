@@ -1,6 +1,4 @@
-
 import os
-
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
 from sym import encrypt_data
