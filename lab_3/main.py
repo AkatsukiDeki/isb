@@ -1,23 +1,16 @@
+import json
 import sys
 sys.path.append('crypto')
 
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QVBoxLayout, QWidget, QComboBox, QPushButton, QMessageBox
+from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QVBoxLayout, QWidget, QComboBox, QPushButton, QMessageBox, QFileDialog
 from crypto.file import generate_keys, encrypt_file, decrypt_file
 
 class EncryptionApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.settings = {
-            "initial_file": "texts/text.txt",
-            "encrypted_file": "texts/encrypted_text.txt",
-            "decrypted_file": "texts/decrypted_text.txt",
-            "symmetric_key": "keys/symmetric_key.txt",
-            "asym_public_key": "keys/public_key.pem",
-            "asym_private_key": "keys/private_key.pem",
-            "nonce": "keys/sym_nonce.txt",
-            "encrypted_symmetric_key": "keys/encrypted_symmetric_key.txt",
-            "decrypted_symmetric_key": "keys/decrypted_symmetric_key.txt"
-        }
+
+        with open('settings.json', 'r') as f:
+            self.settings = json.load(f)
 
         self.initUI()
 
@@ -48,25 +41,55 @@ class EncryptionApp(QMainWindow):
     def start_selected_action(self):
         selected_action = self.mode_combo.currentText().lower()
 
-        if selected_action == 'key generation':
-            self.generate_keys()
-        elif selected_action == 'encryption':
-            self.encrypt_data()
-        elif selected_action == 'decryption':
-            self.decrypt_data()
+        match selected_action:
+            case 'key generation':
+                self.generate_keys()
+            case 'encryption':
+                self.encrypt_data()
+            case 'decryption':
+                self.decrypt_data()
+                pass
 
     def generate_keys(self):
-        generate_keys(self.settings["asym_private_key"], self.settings["asym_public_key"], self.settings["symmetric_key"])
+        # Получение путей к ключам из диалога с пользователем
+        asym_private_key_path = self.get_file_path("Выберите путь для приватного ключа", "Файлы ключей (*.pem)")
+        asym_public_key_path = self.get_file_path("Выберите путь для публичного ключа", "Файлы ключей (*.pem)")
+        symmetric_key_path = self.get_file_path("Выберите путь для симметричного ключа", "Файлы ключей (*.txt)")
+
+        # Генерация ключей
+        generate_keys(asym_private_key_path, asym_public_key_path, symmetric_key_path)
         QMessageBox.information(self, 'Key Generation', 'Keys were generated successfully!')
 
     def encrypt_data(self):
-        encrypt_file(self.settings["initial_file"], self.settings["asym_private_key"], self.settings["symmetric_key"], self.settings["encrypted_file"])
+        # Получение путей к файлам и ключам от пользователя
+        initial_file_path = self.get_file_path("Выберите исходный файл", "Текстовые файлы (*.txt)")
+        encrypted_file_path = self.get_file_path("Выберите путь для зашифрованного файла", "Текстовые файлы (*.txt)")
+        asym_private_key_path = self.get_file_path("Выберите путь для приватного ключа", "Файлы ключей (*.pem)")
+        symmetric_key_path = self.get_file_path("Выберите путь для симметричного ключа", "Файлы ключей (*.txt)")
+
+        # Шифрование данных
+        encrypt_file(initial_file_path, asym_private_key_path, symmetric_key_path, encrypted_file_path)
         QMessageBox.information(self, 'Encryption', 'Data was encrypted successfully!')
 
     def decrypt_data(self):
-        decrypt_file(self.settings["encrypted_file"], self.settings["asym_private_key"], self.settings["symmetric_key"], self.settings["decrypted_file"])
+        # Получение путей к файлам и ключам от пользователя
+        encrypted_file_path = self.get_file_path("Выберите зашифрованный файл", "Текстовые файлы (*.txt)")
+        decrypted_file_path = self.get_file_path("Выберите путь для расшифрованного файла", "Текстовые файлы (*.txt)")
+        asym_private_key_path = self.get_file_path("Выберите путь для приватного ключа", "Файлы ключей (*.pem)")
+        symmetric_key_path = self.get_file_path("Выберите путь для симметричного ключа", "Файлы ключей (*.txt)")
+
+        # Расшифровка данных
+        decrypt_file(encrypted_file_path, asym_private_key_path, symmetric_key_path, decrypted_file_path)
         QMessageBox.information(self, 'Decryption', 'Decrypted text was saved to file.')
 
+    def get_file_path(self, title, file_filter):
+        # Диалог выбора файла
+        file_dialog = QFileDialog()
+        file_dialog.setWindowTitle(title)
+        file_dialog.setNameFilter(file_filter)
+        if file_dialog.exec_():
+            return file_dialog.selectedFiles()[0]
+        return None
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
